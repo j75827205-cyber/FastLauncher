@@ -1,0 +1,41 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Unzip project (if uploaded as a zip)
+        run: |
+          if [ -f FastLauncher.zip ]; then
+            unzip -oq FastLauncher.zip -d .
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build debug APK
+        run: |
+          cd FastLauncher
+          gradle assembleDebug
+
+      - name: Upload APK as downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FastLauncher-debug-apk
+          path: FastLauncher/app/build/outputs/apk/debug/*.apk
